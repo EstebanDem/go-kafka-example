@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+	"registration-service/internal/application/service"
 	"registration-service/internal/domain/user"
 	"registration-service/internal/pkg"
 	"time"
@@ -13,20 +15,22 @@ type AddUserRequest struct {
 }
 
 type AddUserUseCase interface {
-	Add(payload AddUserRequest) error
+	Add(ctx context.Context, payload AddUserRequest) error
 }
 
 type addUserUseCase struct {
-	users user.UserRepository
+	users    user.UserRepository
+	producer service.Publisher
 }
 
-func NewAddUserUseCase(repo user.UserRepository) AddUserUseCase {
+func NewAddUserUseCase(repo user.UserRepository, producer service.Publisher) AddUserUseCase {
 	return &addUserUseCase{
-		users: repo,
+		users:    repo,
+		producer: producer,
 	}
 }
 
-func (uc *addUserUseCase) Add(payload AddUserRequest) error {
+func (uc *addUserUseCase) Add(ctx context.Context, payload AddUserRequest) error {
 	newUser := user.User{
 		ID:             pkg.NewUUID().String(),
 		Name:           payload.Name,
@@ -42,5 +46,24 @@ func (uc *addUserUseCase) Add(payload AddUserRequest) error {
 		return err
 	}
 
+	event := AddUserEvent{
+		ID:          newUser.ID,
+		Name:        newUser.Name,
+		Email:       newUser.Email,
+		PhoneNumber: newUser.PhoneNumber,
+	}
+
+	err = uc.producer.Publish(ctx, event)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+type AddUserEvent struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
 }

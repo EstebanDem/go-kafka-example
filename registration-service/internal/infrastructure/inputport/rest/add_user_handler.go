@@ -21,7 +21,7 @@ func AddUserHandler(uc usecase.AddUserUseCase) http.HandlerFunc {
 			return
 		}
 
-		err = uc.Add(payload.mapRequest())
+		err = uc.Add(r.Context(), payload.mapRequest())
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

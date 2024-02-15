@@ -2,9 +2,11 @@ package framework
 
 import (
 	"net/http"
+	"registration-service/internal/application/service"
 	"registration-service/internal/application/usecase"
 	"registration-service/internal/domain/user"
 	"registration-service/internal/infrastructure/inputport/rest"
+	"registration-service/internal/infrastructure/producer"
 	"registration-service/internal/infrastructure/storage"
 )
 
@@ -12,12 +14,16 @@ func NewApplication() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Dependency Injection
+	appProducers := applicationProducers{
+		producer: producer.NewKafkaProducer([]string{"127.0.0.1:9092"}, "new-user"),
+	}
+
 	appRepositories := applicationRepositories{
 		userRepository: storage.NewUserInMemoryRepository(),
 	}
 
 	appUseCases := applicationUseCases{
-		addUser:     usecase.NewAddUserUseCase(appRepositories.userRepository),
+		addUser:     usecase.NewAddUserUseCase(appRepositories.userRepository, appProducers.producer),
 		getAllUsers: usecase.NewGetAllUsersUseCase(appRepositories.userRepository),
 	}
 
@@ -36,4 +42,8 @@ type applicationRepositories struct {
 type applicationUseCases struct {
 	addUser     usecase.AddUserUseCase
 	getAllUsers usecase.GetAllUsersUseCase
+}
+
+type applicationProducers struct {
+	producer service.Publisher
 }
