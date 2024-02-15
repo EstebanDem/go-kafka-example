@@ -23,12 +23,14 @@ func NewApplication() *http.ServeMux {
 	}
 
 	appUseCases := applicationUseCases{
-		addUser:     usecase.NewAddUserUseCase(appRepositories.userRepository, appProducers.producer),
-		getAllUsers: usecase.NewGetAllUsersUseCase(appRepositories.userRepository),
+		addUser:      usecase.NewAddUserUseCase(appRepositories.userRepository, appProducers.producer),
+		getAllUsers:  usecase.NewGetAllUsersUseCase(appRepositories.userRepository),
+		confirmEmail: usecase.NewConfirmEmailUseCase(appRepositories.userRepository),
 	}
 
 	mux.HandleFunc("POST /users", rest.AddUserHandler(appUseCases.addUser))
 	mux.HandleFunc("GET /users", rest.GetAllUsersHandler(appUseCases.getAllUsers))
+	mux.HandleFunc("POST /users/validate_email", rest.ConfirmEmailHandler(appUseCases.confirmEmail))
 
 	return mux
 }
@@ -40,8 +42,9 @@ type applicationRepositories struct {
 }
 
 type applicationUseCases struct {
-	addUser     usecase.AddUserUseCase
-	getAllUsers usecase.GetAllUsersUseCase
+	addUser      usecase.AddUserUseCase
+	getAllUsers  usecase.GetAllUsersUseCase
+	confirmEmail usecase.ConfirmEmailUseCase
 }
 
 type applicationProducers struct {
