@@ -31,7 +31,6 @@ func GetAllUsersHandler(uc usecase.GetAllUsersUseCase) http.HandlerFunc {
 			payload = append(payload, mapToJsonResponse(u))
 		}
 
-		// extract
 		out, err := json.Marshal(payload)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)

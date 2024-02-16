@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"registration-service/internal/application/service"
 	"registration-service/internal/domain/user"
 	"registration-service/internal/pkg"
@@ -45,6 +46,7 @@ func (uc *addUserUseCase) Add(ctx context.Context, payload AddUserRequest) error
 	if err != nil {
 		return err
 	}
+	log.Printf("user with id: %s saved", newUser.ID)
 
 	event := AddUserEvent{
 		ID:          newUser.ID,

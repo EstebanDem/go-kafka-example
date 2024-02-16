@@ -6,16 +6,23 @@ import (
 	"net/http"
 )
 
+type AddUserEventRequestJson struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+}
+
 func ValidateEmailHandler(uc usecase.ValidateEmailUseCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var payload usecase.AddUserEventRequest
+		var payload AddUserEventRequestJson
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		err = uc.Validate(r.Context(), payload)
+		err = uc.Validate(r.Context(), payload.mapToUseCaseRequest())
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -23,5 +30,14 @@ func ValidateEmailHandler(uc usecase.ValidateEmailUseCase) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusAccepted)
 
+	}
+}
+
+func (p AddUserEventRequestJson) mapToUseCaseRequest() usecase.AddUserEventRequest {
+	return usecase.AddUserEventRequest{
+		ID:          p.ID,
+		Name:        p.Name,
+		Email:       p.Email,
+		PhoneNumber: p.PhoneNumber,
 	}
 }

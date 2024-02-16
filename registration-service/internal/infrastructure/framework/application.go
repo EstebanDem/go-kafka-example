@@ -10,12 +10,17 @@ import (
 	"registration-service/internal/infrastructure/storage"
 )
 
+const (
+	kafkaBrokerAddress = "127.0.0.1:9092"
+	topic              = "new-user"
+)
+
 func NewApplication() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Dependency Injection
 	appProducers := applicationProducers{
-		producer: producer.NewKafkaProducer([]string{"127.0.0.1:9092"}, "new-user"),
+		producer: producer.NewKafkaProducer([]string{kafkaBrokerAddress}, topic),
 	}
 
 	appRepositories := applicationRepositories{

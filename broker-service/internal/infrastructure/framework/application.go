@@ -11,27 +11,39 @@ import (
 	"syscall"
 )
 
+const (
+	kafkaBrokerAddress = "127.0.0.1:9092"
+	emailTopic         = "email-validation"
+	newUserTopic       = "new-user"
+)
+
 func RunBroker() {
 	// Notify new user
 	httpNewUserNotifier := notify.NewHttpNotifier(appsToNotifyNewUserRegistered())
-	chMsg := make(chan service.NewUserMessage)
+	chMsg := make(chan service.ConsumerMessage)
 	chErr := make(chan error)
-	kafkaConsumer := consumer.NewKafkaConsumer([]string{"127.0.0.1:9092"}, "new-user")
+	newUserMessageConstructor := func() service.ConsumerMessage {
+		return &service.NewUserMessage{}
+	}
+	kafkaConsumer := consumer.NewKafkaConsumer([]string{kafkaBrokerAddress}, newUserTopic)
 
 	go func() {
-		log.Println("listening messages in new-user topic")
-		kafkaConsumer.Read(context.Background(), chMsg, chErr)
+		log.Println("listening messages in 'new-user' topic")
+		kafkaConsumer.Read(context.Background(), chMsg, chErr, newUserMessageConstructor)
 	}()
 
 	// Notify Email
 	httpEmailNotifier := notify.NewHttpNotifier(appsToNotifyEmailRegistered())
-	chEmailMsg := make(chan service.EmailMessage)
+	chEmailMsg := make(chan service.ConsumerMessage)
 	chEmailErr := make(chan error)
-	kafkaEmailConsumer := consumer.NewKafkaEmailConsumer([]string{"127.0.0.1:9092"}, "email-validation")
+	emailMessageConstructor := func() service.ConsumerMessage {
+		return &service.EmailMessage{}
+	}
+	kafkaEmailConsumer := consumer.NewKafkaConsumer([]string{kafkaBrokerAddress}, emailTopic)
 
 	go func() {
-		log.Println("listening messages in email-validation topic")
-		kafkaEmailConsumer.Read(context.Background(), chEmailMsg, chEmailErr)
+		log.Println("listening messages in 'email-validation' topic")
+		kafkaEmailConsumer.Read(context.Background(), chEmailMsg, chEmailErr, emailMessageConstructor)
 	}()
 
 	// Setup signal handling
@@ -48,10 +60,12 @@ func RunBroker() {
 			log.Println("broker-service going down")
 			return
 		case m := <-chMsg:
+			log.Println("new message in 'new-user' topic")
 			httpNewUserNotifier.Send(m)
 		case err := <-chErr:
 			log.Println(err)
 		case m := <-chEmailMsg:
+			log.Println("new message in 'email-validated' topic")
 			httpEmailNotifier.Send(m)
 		case err := <-chEmailErr:
 			log.Println(err)

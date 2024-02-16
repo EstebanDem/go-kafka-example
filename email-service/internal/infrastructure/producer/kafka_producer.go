@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/snappy"
+	"log"
 
 	"time"
 )
@@ -20,7 +21,7 @@ func (p *KafkaProducer) Publish(ctx context.Context, payload interface{}) error 
 	if err != nil {
 		return err
 	}
-
+	log.Printf("email validated, sending message to :%s topic...", p.writer.Topic)
 	return p.writer.WriteMessages(ctx, message)
 }
 
@@ -48,7 +49,6 @@ func (p *KafkaProducer) encodeMessage(payload interface{}) (kafka.Message, error
 	if err != nil {
 		return kafka.Message{}, err
 	}
-	//
 	key := pkg.NewUUID().String()
 
 	return kafka.Message{

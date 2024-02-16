@@ -8,11 +8,16 @@ import (
 	"net/http"
 )
 
+const (
+	kafkaBrokerAddress = "127.0.0.1:9092"
+	topic              = "email-validation"
+)
+
 func NewApplication() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	appProducers := applicationProducers{producer: producer.NewKafkaProducer(
-		[]string{"127.0.0.1:9092"}, "email-validation"),
+		[]string{kafkaBrokerAddress}, topic),
 	}
 
 	appUseCases := applicationUseCases{validateEmail: usecase.NewEmailValidator(appProducers.producer)}

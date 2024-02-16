@@ -7,10 +7,10 @@ import (
 )
 
 type AddUserEventRequest struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
+	ID          string
+	Name        string
+	Email       string
+	PhoneNumber string
 }
 
 type ValidateEmailResponse struct {

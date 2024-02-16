@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"registration-service/internal/domain/user"
+	"time"
 )
 
 type ValidateEmailRequest struct {
@@ -23,6 +25,9 @@ type confirmEmailUseCase struct {
 }
 
 func (c *confirmEmailUseCase) Confirm(_ context.Context, request ValidateEmailRequest) error {
+	// dummy sleep to delay action in demo
+	time.Sleep(2 * time.Second)
+
 	u, err := c.users.GetByID(request.ID)
 	if err != nil {
 		return err
@@ -32,5 +37,7 @@ func (c *confirmEmailUseCase) Confirm(_ context.Context, request ValidateEmailRe
 	if err != nil {
 		return err
 	}
+
+	log.Printf("email confirmed for user: %s", u.ID)
 	return nil
 }
